@@ -1,4 +1,0 @@
-com/perficient/resilience4j/producer/ProducerApplication.class
-com/perficient/resilience4j/producer/controller/PaymentController.class
-com/perficient/resilience4j/producer/model/Payment.class
-com/perficient/resilience4j/producer/service/PaymentService.class

@@ -1,16 +1,28 @@
 package com.perficient.resilience4j.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Payment {
+    @JsonProperty("id")
     private String id;
+    
+    @JsonProperty("description")
     private String description;
+    
+    @JsonProperty("amount")
     private BigDecimal amount;
+    
+    @JsonProperty("currency")
     private String currency;
+    
+    @JsonProperty("status")
     private String status;
+    
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     // Default constructor

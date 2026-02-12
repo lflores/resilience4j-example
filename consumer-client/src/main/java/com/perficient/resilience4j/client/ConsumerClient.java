@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.perficient.resilience4j.client.config.ClientConfig;
 import com.perficient.resilience4j.client.metrics.ClientMetrics;
 import com.perficient.resilience4j.client.model.Payment;
+import com.perficient.resilience4j.client.model.response.*;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -159,9 +160,13 @@ public class ConsumerClient {
                     
                     String responseBody = response.body() != null ? response.body().string() : "";
                     
-                    // Validate response for GET payments
-                    if (endpoint.equals("/payments") && "GET".equals(method) && ClientConfig.ENABLE_RESPONSE_VALIDATION) {
-                        validatePaymentsResponse(responseBody);
+                    // Handle different endpoint responses
+                    if (endpoint.equals("/payments")) {
+                        if ("GET".equals(method) && ClientConfig.ENABLE_RESPONSE_VALIDATION) {
+                            validateGetPaymentsResponse(responseBody);
+                        } else if ("POST".equals(method) && ClientConfig.ENABLE_RESPONSE_VALIDATION) {
+                            validateCreatePaymentResponse(responseBody);
+                        }
                     }
                     
                     System.out.println("✅ " + testName + " - " + response.code() + 
@@ -169,8 +174,14 @@ public class ConsumerClient {
                 } else {
                     metrics.recordFailure();
                     String errorBody = response.body() != null ? response.body().string() : "";
-                    System.out.println("❌ " + testName + " - " + response.code() + 
-                                     " (" + responseTime + "ms) - " + errorBody);
+                    
+                    // Try to parse error response if it's a payment endpoint
+                    if ((endpoint.equals("/payments")) && !errorBody.isEmpty()) {
+                        parseErrorResponse(errorBody, testName, response.code(), responseTime);
+                    } else {
+                        System.out.println("❌ " + testName + " - " + response.code() + 
+                                         " (" + responseTime + "ms) - " + errorBody);
+                    }
                 }
             }
 
@@ -187,27 +198,87 @@ public class ConsumerClient {
         }
     }
 
-    private void validatePaymentsResponse(String responseBody) {
+    private void validateGetPaymentsResponse(String responseBody) {
         try {
-            List<Payment> payments = objectMapper.readValue(responseBody, new TypeReference<List<Payment>>() {});
+            GetPaymentsResponse response = objectMapper.readValue(responseBody, GetPaymentsResponse.class);
             
-            if (payments.isEmpty()) {
-                System.out.println("⚠️  Warning: No payments found in response");
-                return;
-            }
-            
-            // Validate payment structure
-            for (Payment payment : payments) {
-                if (payment.getId() == null || payment.getAmount() == null) {
-                    System.out.println("⚠️  Warning: Invalid payment structure found");
-                    break;
+            // Check for errors first
+            if (response.hasErrors()) {
+                System.out.println("⚠️  Response contains errors:");
+                for (ErrorResponse error : response.getErrors()) {
+                    System.out.println("   ❌ " + error.getCode() + ": " + error.getMessage());
                 }
             }
             
-            System.out.println("📊 Found " + payments.size() + " payments");
+            // Check for data
+            if (response.hasData()) {
+                List<Payment> payments = response.getData();
+                // Validate payment structure
+                for (Payment payment : payments) {
+                    if (payment.getId() == null || payment.getAmount() == null) {
+                        System.out.println("⚠️  Warning: Invalid payment structure found");
+                        break;
+                    }
+                }
+                System.out.println("📊 Found " + payments.size() + " payments in response");
+            } else if (!response.hasErrors()) {
+                System.out.println("📊 No payments found in response");
+            }
             
         } catch (Exception e) {
-            System.out.println("⚠️  Warning: Failed to parse payments response: " + e.getMessage());
+            System.out.println("⚠️  Warning: Failed to parse GET payments response: " + e.getMessage());
+        }
+    }
+    
+    private void validateCreatePaymentResponse(String responseBody) {
+        try {
+            CreatePaymentResponse response = objectMapper.readValue(responseBody, CreatePaymentResponse.class);
+            
+            // Check for errors first
+            if (response.hasErrors()) {
+                System.out.println("⚠️  Create payment failed with errors:");
+                for (ErrorResponse error : response.getErrors()) {
+                    System.out.println("   ❌ " + error.getCode() + ": " + error.getMessage());
+                }
+            }
+            
+            // Check for created payment data
+            if (response.hasData()) {
+                List<Payment> createdPayments = response.getData();
+                if (!createdPayments.isEmpty()) {
+                    Payment payment = createdPayments.get(0);
+                    System.out.println("✅ Payment created successfully: ID=" + payment.getId() + 
+                                     ", Amount=" + payment.getAmount() + " " + payment.getCurrency());
+                }
+            } else if (!response.hasErrors()) {
+                System.out.println("⚠️  No payment data returned from create request");
+            }
+            
+        } catch (Exception e) {
+            System.out.println("⚠️  Warning: Failed to parse CREATE payment response: " + e.getMessage());
+        }
+    }
+    
+    private void parseErrorResponse(String errorBody, String testName, int statusCode, long responseTime) {
+        try {
+            // Try to parse as GetPaymentsResponse first (works for both GET and POST errors that return this structure)
+            GetPaymentsResponse errorResponse = objectMapper.readValue(errorBody, GetPaymentsResponse.class);
+            
+            if (errorResponse.hasErrors()) {
+                System.out.println("❌ " + testName + " - " + statusCode + " (" + responseTime + "ms) - Structured Error:");
+                for (ErrorResponse error : errorResponse.getErrors()) {
+                    System.out.println("   🔸 " + error.getCode() + ": " + error.getMessage());
+                }
+            } else {
+                // Fallback to raw error body
+                System.out.println("❌ " + testName + " - " + statusCode + 
+                                 " (" + responseTime + "ms) - " + errorBody);
+            }
+            
+        } catch (Exception e) {
+            // If parsing fails, just show the raw error body
+            System.out.println("❌ " + testName + " - " + statusCode + 
+                             " (" + responseTime + "ms) - " + errorBody);
         }
     }
 

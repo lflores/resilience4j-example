@@ -2,13 +2,29 @@ package com.perficient.resilience4j.consumer.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Payment {
+    @JsonProperty("id")
     private String id;
+    
+    @JsonProperty("description")
     private String description;
+    
+    @JsonProperty("amount")
     private BigDecimal amount;
+    
+    @JsonProperty("currency")
     private String currency;
+    
+    @JsonProperty("status")
     private String status;
+    
+    @JsonProperty("created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     // Default constructor

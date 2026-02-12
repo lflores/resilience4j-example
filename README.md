@@ -1,6 +1,6 @@
 # Resilience4j Example - Maven Monorepo
 
-A Maven monorepo containing two Spring Boot applications demonstrating microservices communication patterns. The project consists of a producer service that manages payments and a consumer service that calls the producer via HTTP.
+A Maven monorepo containing two Spring Boot applications and a testing client demonstrating microservices communication patterns. The project consists of a producer service that manages payments, a consumer service that calls the producer via HTTP, and a consumer-client testing tool for continuous monitoring.
 
 ## Project Structure
 
@@ -16,16 +16,24 @@ resilience4j-example/
 │       │   ├── service/PaymentService.java
 │       │   └── model/Payment.java
 │       └── resources/application.yml
-└── consumer-app/                    # Consumer Spring Boot application
+├── consumer-app/                    # Consumer Spring Boot application
+│   ├── pom.xml
+│   └── src/main/
+│       ├── java/com/perficient/resilience4j/consumer/
+│       │   ├── ConsumerApplication.java
+│       │   ├── controller/ConsumerController.java
+│       │   ├── service/ProducerClientService.java
+│       │   ├── config/WebClientConfig.java
+│       │   └── model/Payment.java
+│       └── resources/application.yml
+└── consumer-client/                 # HTTP testing client
     ├── pom.xml
     └── src/main/
-        ├── java/com/perficient/resilience4j/consumer/
-        │   ├── ConsumerApplication.java
-        │   ├── controller/ConsumerController.java
-        │   ├── service/ProducerClientService.java
-        │   ├── config/WebClientConfig.java
-        │   └── model/Payment.java
-        └── resources/application.yml
+        └── java/com/perficient/resilience4j/client/
+            ├── ConsumerClient.java
+            ├── ClientConfig.java
+            ├── ClientMetrics.java
+            └── model/Payment.java
 ```
 
 ## Technologies Used
@@ -36,6 +44,8 @@ resilience4j-example/
 - **Spring Web** - REST API endpoints
 - **Spring WebFlux** - Reactive HTTP client (Consumer)
 - **Spring Actuator** - Health monitoring and metrics
+- **OkHttp 4.12.0** - HTTP client for testing client
+- **Jackson 2.16.1** - JSON processing for testing client
 - **Maven Monorepo** - Multi-module project structure
 
 ## Applications
@@ -64,6 +74,18 @@ The consumer service acts as a proxy that communicates with the producer via HTT
 - Producer connectivity health checks
 - Spring Actuator monitoring
 - Proxy endpoints for payment operations
+
+### Consumer Client (Testing Tool)
+
+The consumer-client is a standalone HTTP testing tool that continuously monitors the consumer application.
+
+**Features:**
+- Continuous API testing with 5-second polling intervals
+- HTTP client using OkHttp
+- Performance metrics and response time tracking
+- JSON response parsing and validation
+- Configurable endpoints and timeouts
+- Comprehensive logging and error reporting
 
 ## Prerequisites
 
@@ -101,6 +123,22 @@ mvn spring-boot:run
 ```
 
 The consumer will start on `http://localhost:8081`
+
+### 4. Run Consumer Client (Optional)
+
+The consumer-client provides continuous monitoring and testing of the consumer API:
+
+```bash
+# In a new terminal (ensure both apps are running)
+cd consumer-client
+mvn compile exec:java -Dexec.mainClass="com.perficient.resilience4j.client.ConsumerClient"
+```
+
+The client will poll `http://localhost:8081/consumer/payments` every 5 seconds and display:
+- Response times and HTTP status codes
+- JSON payload validation
+- Request/response metrics
+- Error tracking and recovery
 
 ## API Endpoints
 
@@ -258,6 +296,7 @@ mvn test
 # Run tests for specific module
 mvn test -pl producer-app
 mvn test -pl consumer-app
+mvn test -pl consumer-client
 ```
 
 ### Building Individual Modules
@@ -268,6 +307,9 @@ mvn clean package -pl producer-app
 
 # Build only consumer  
 mvn clean package -pl consumer-app
+
+# Build only consumer-client
+mvn clean package -pl consumer-client
 ```
 
 ### IDE Setup

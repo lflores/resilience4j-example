@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: producer-app
+  jmx:
+    enabled: true
 
 management:
   endpoints:
@@ -13,9 +15,20 @@ management:
   endpoint:
     health:
       show-details: always
+    jmx:
+      exposure:
+        include: "*"
   info:
     env:
       enabled: true
+  server:
+    port: 9001
+
+com.sun.management.jmxremote:
+  port: 9001
+  rmi.port: 9001
+  authenticate: false
+  ssl: false
 
 info:
   app:

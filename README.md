@@ -108,10 +108,10 @@ The consumer will start on `http://localhost:8081`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/payments` | Get all payments |
-| POST | `/payments` | Create a new payment |
-| GET | `/payments/{id}` | Get payment by ID |
-| GET | `/payments/health` | Service health check |
+| GET | `/producer/payments` | Get all payments |
+| POST | `/producer/payments` | Create a new payment |
+| GET | `/producer/payments/{id}` | Get payment by ID |
+| GET | `/producer/health` | Service health check |
 | GET | `/actuator/health` | Spring Actuator health |
 | GET | `/actuator/*` | All actuator endpoints |
 
@@ -131,7 +131,7 @@ The consumer will start on `http://localhost:8081`
 ### Get All Payments (Direct from Producer)
 
 ```bash
-curl -X GET http://localhost:8080/payments
+curl -X GET http://localhost:8080/producer/payments
 ```
 
 ### Get All Payments (Via Consumer)
@@ -156,7 +156,7 @@ curl -X POST http://localhost:8081/consumer/payments \
 
 ```bash
 # Producer health
-curl http://localhost:8080/payments/health
+curl http://localhost:8080/producer/health
 curl http://localhost:8080/actuator/health
 
 # Consumer health  
@@ -178,12 +178,22 @@ server:
 spring:
   application:
     name: producer-app
+  jmx:
+    enabled: true
 
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+  server:
+    port: 9001
+
+com.sun.management.jmxremote:
+  port: 9001
+  rmi.port: 9001
+  authenticate: false
+  ssl: false
 ```
 
 ### Consumer Application (`consumer-app/src/main/resources/application.yml`)
@@ -195,6 +205,8 @@ server:
 spring:
   application:
     name: consumer-app
+  jmx:
+    enabled: true
 
 producer:
   service:
@@ -205,6 +217,14 @@ management:
     web:
       exposure:
         include: "*"
+  server:
+    port: 9002
+
+com.sun.management.jmxremote:
+  port: 9002
+  rmi.port: 9002
+  authenticate: false
+  ssl: false
 ```
 
 ## Payment Model
@@ -264,8 +284,23 @@ Both applications include Spring Actuator endpoints for monitoring:
 - **Environment**: `/actuator/env`
 
 Access all endpoints at:
-- Producer: http://localhost:8080/actuator
-- Consumer: http://localhost:8081/actuator
+- Producer: http://localhost:8080/actuator (Management Port: 9001)
+- Consumer: http://localhost:8081/actuator (Management Port: 9002)
+
+### JMX Monitoring
+
+Each application runs on different JMX ports to avoid conflicts:
+- **Producer JMX Port**: 9001
+- **Consumer JMX Port**: 9002
+
+You can connect to JMX using tools like JConsole or VisualVM:
+```bash
+# Connect to Producer JMX
+jconsole localhost:9001
+
+# Connect to Consumer JMX  
+jconsole localhost:9002
+```
 
 ## Future Enhancements
 
@@ -281,21 +316,36 @@ This project is designed as a foundation for implementing Resilience4j patterns:
 
 ### Common Issues
 
-1. **Port Already in Use**
+1. **Port Already in Use - JMX Conflict**
    ```bash
-   # Check what's using the port
-   lsof -i :8080
-   lsof -i :8081
+   # Error: Address already in use on port 9001/9002
+   # Check JMX ports
+   lsof -i :9001
+   lsof -i :9002
+   
+   # Kill processes if needed
+   kill -9 <PID>
+   ```
+   
+   The applications use different JMX ports to avoid conflicts:
+   - Producer: 9001
+   - Consumer: 9002
+
+2. **Port Already in Use - Application Ports**
+   ```bash
+   # Check what's using the application ports
+   lsof -i :8080  # Producer
+   lsof -i :8081  # Consumer
    ```
 
-2. **Java Version Issues**
+3. **Java Version Issues**
    ```bash
    # Verify Java version
    java -version
    echo $JAVA_HOME
    ```
 
-3. **Maven Issues**
+4. **Maven Issues**
    ```bash
    # Verify Maven version
    mvn -version

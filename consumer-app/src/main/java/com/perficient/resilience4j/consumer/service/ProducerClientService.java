@@ -27,7 +27,7 @@ public class ProducerClientService {
         try {
             Mono<List<Payment>> response = webClient
                     .get()
-                    .uri(producerUrl + "/payments")
+                    .uri(producerUrl + "/producer/payments")
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<Payment>>() {});
 
@@ -44,7 +44,7 @@ public class ProducerClientService {
         try {
             Mono<Payment> response = webClient
                     .post()
-                    .uri(producerUrl + "/payments")
+                    .uri(producerUrl + "/producer/payments")
                     .bodyValue(payment)
                     .retrieve()
                     .bodyToMono(Payment.class);
@@ -62,7 +62,7 @@ public class ProducerClientService {
         try {
             Mono<String> response = webClient
                     .get()
-                    .uri(producerUrl + "/payments/health")
+                    .uri(producerUrl + "/producer/health")
                     .retrieve()
                     .bodyToMono(String.class);
 

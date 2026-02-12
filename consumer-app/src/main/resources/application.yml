@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: consumer-app
+  jmx:
+    enabled: true
 
 producer:
   service:
@@ -17,9 +19,20 @@ management:
   endpoint:
     health:
       show-details: always
+    jmx:
+      exposure:
+        include: "*"
   info:
     env:
       enabled: true
+  server:
+    port: 9002
+
+com.sun.management.jmxremote:
+  port: 9002
+  rmi.port: 9002
+  authenticate: false
+  ssl: false
 
 info:
   app:

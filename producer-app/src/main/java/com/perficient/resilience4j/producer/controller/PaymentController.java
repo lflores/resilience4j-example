@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/producer")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -20,13 +20,13 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    @GetMapping
+    @GetMapping("/payments")
     public ResponseEntity<List<Payment>> getAllPayments() {
         List<Payment> payments = paymentService.getAllPayments();
         return ResponseEntity.ok(payments);
     }
 
-    @PostMapping
+    @PostMapping("/payments")
     public ResponseEntity<Payment> createPayment(@RequestBody Payment paymentRequest) {
         try {
             Payment createdPayment = paymentService.createPayment(paymentRequest);
@@ -36,7 +36,7 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/payments/{id}")
     public ResponseEntity<Payment> getPaymentById(@PathVariable String id) {
         Payment payment = paymentService.getPaymentById(id);
         if (payment != null) {

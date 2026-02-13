@@ -1,9 +1,18 @@
 package com.perficient.resilience4j.client.config;
 
 public class ClientConfig {
-    public static final String DEFAULT_CONSUMER_URL = "http://localhost:8081/consumer";
-    public static final String DEFAULT_PAYMENT_URL = "http://localhost:8080/payments";
-    public static final String DEFAULT_ACCOUNT_URL = "http://localhost:8083/accounts";
+    // Environment-based configuration with fallback to localhost
+    public static final String DEFAULT_CONSUMER_URL = System.getenv("CONSUMER_URL") != null 
+        ? System.getenv("CONSUMER_URL") 
+        : "http://localhost:8081/consumer";
+    
+    public static final String DEFAULT_PAYMENT_URL = System.getenv("PAYMENT_URL") != null 
+        ? System.getenv("PAYMENT_URL") 
+        : "http://localhost:8080/payments";
+    
+    public static final String DEFAULT_ACCOUNT_URL = System.getenv("ACCOUNT_URL") != null 
+        ? System.getenv("ACCOUNT_URL") 
+        : "http://localhost:8083/accounts";
     
     public static final int DEFAULT_POLLING_INTERVAL = 5; // seconds
     public static final int DEFAULT_METRICS_INTERVAL = 30; // seconds

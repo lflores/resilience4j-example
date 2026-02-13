@@ -1,0 +1,21 @@
+# Docker-specific configuration for Consumer Application
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+payment:
+  service:
+    url: http://payments-api:8080
+
+account:
+  service:
+    url: http://accounts-api:8083
+
+# Docker networking configuration
+server:
+  address: 0.0.0.0
+
+management:
+  server:
+    address: 0.0.0.0

@@ -1,0 +1,13 @@
+# Docker-specific configuration for Payments API
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+# Docker networking configuration
+server:
+  address: 0.0.0.0
+
+management:
+  server:
+    address: 0.0.0.0

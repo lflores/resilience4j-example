@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  payments-api:
+    build:
+      context: .
+      dockerfile: payments-api/Dockerfile
+    container_name: payments-api
+    ports:
+      - "8080:8080"
+      - "9001:9001"
+    networks:
+      - resilience4j-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/payments/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  accounts-api:
+    build:
+      context: .
+      dockerfile: accounts-api/Dockerfile
+    container_name: accounts-api
+    ports:
+      - "8083:8083"
+      - "9003:9003"
+    networks:
+      - resilience4j-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/accounts/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  consumer-app:
+    build:
+      context: .
+      dockerfile: consumer-app/Dockerfile
+    container_name: consumer-app
+    ports:
+      - "8081:8081"
+      - "9002:9002"
+    networks:
+      - resilience4j-network
+    depends_on:
+      payments-api:
+        condition: service_healthy
+      accounts-api:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - PAYMENT_SERVICE_URL=http://payments-api:8080
+      - ACCOUNT_SERVICE_URL=http://accounts-api:8083
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/consumer/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  consumer-client:
+    build:
+      context: .
+      dockerfile: consumer-client/Dockerfile
+    container_name: consumer-client
+    networks:
+      - resilience4j-network
+    depends_on:
+      consumer-app:
+        condition: service_healthy
+    environment:
+      - CONSUMER_URL=http://consumer-app:8081/consumer
+      - PAYMENT_URL=http://payments-api:8080/payments
+      - ACCOUNT_URL=http://accounts-api:8083/accounts
+    restart: unless-stopped
+
+networks:
+  resilience4j-network:
+    driver: bridge
+
+volumes:
+  maven-cache:
+    driver: local

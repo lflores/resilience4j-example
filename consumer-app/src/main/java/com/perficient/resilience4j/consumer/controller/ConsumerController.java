@@ -1,16 +1,21 @@
 package com.perficient.resilience4j.consumer.controller;
 
-import com.perficient.resilience4j.consumer.model.Payment;
-import com.perficient.resilience4j.consumer.service.ProducerClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.perficient.resilience4j.consumer.model.Payment;
+import com.perficient.resilience4j.consumer.service.CreatePaymentResponse;
+import com.perficient.resilience4j.consumer.service.GetPaymentsResponse;
+import com.perficient.resilience4j.consumer.service.ProducerClientService;
 
 @RestController
-@RequestMapping("/consumer")
+@RequestMapping(value = "/consumer", produces = "application/json")
 public class ConsumerController {
 
     private final ProducerClientService producerClientService;
@@ -20,24 +25,36 @@ public class ConsumerController {
         this.producerClientService = producerClientService;
     }
 
-    @GetMapping("/payments")
-    public ResponseEntity<List<Payment>> getAllPayments() {
-        try {
-            List<Payment> payments = producerClientService.getAllPayments();
-            return ResponseEntity.ok(payments);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+    @GetMapping(value = "/payments", produces = "application/json")
+    public ResponseEntity<GetPaymentsResponse> getAllPayments() {
+        GetPaymentsResponse response = producerClientService.getAllPayments();
+        
+        // Return appropriate HTTP status based on response content
+        if (!response.getErrors().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .header("Content-Type", "application/json")
+                    .body(response);
         }
+        
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json")
+                .body(response);
     }
 
-    @PostMapping("/payments")
-    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {
-        try {
-            Payment createdPayment = producerClientService.createPayment(payment);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdPayment);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+    @PostMapping(value = "/payments", produces = "application/json", consumes = "application/json")
+    public ResponseEntity<CreatePaymentResponse> createPayment(@RequestBody Payment payment) {
+        CreatePaymentResponse response = producerClientService.createPayment(payment);
+        
+        // Return appropriate HTTP status based on response content
+        if (!response.getErrors().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .header("Content-Type", "application/json")
+                    .body(response);
         }
+        
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Content-Type", "application/json")
+                .body(response);
     }
 
     @GetMapping("/health")

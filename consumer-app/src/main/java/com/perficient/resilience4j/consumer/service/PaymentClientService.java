@@ -19,17 +19,17 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import reactor.core.publisher.Mono;
 
-@Service("producerClientService")
-public class ProducerClientService {
+@Service("paymentClientService")
+public class PaymentClientService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProducerClientService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PaymentClientService.class);
     private final WebClient webClient;
-    private final String producerUrl;
+    private final String paymentUrl;
 
     @Autowired
-    public ProducerClientService(WebClient webClient, @Value("${producer.service.url}") String producerUrl) {
+    public PaymentClientService(WebClient webClient, @Value("${payment.service.url}") String paymentUrl) {
         this.webClient = webClient;
-        this.producerUrl = producerUrl;
+        this.paymentUrl = paymentUrl;
     }
 
     @CircuitBreaker(name = "producerService", fallbackMethod = "getAllPaymentsFallback")
@@ -39,7 +39,7 @@ public class ProducerClientService {
         try {
             Mono<List<Payment>> response = webClient
                     .get()
-                    .uri(producerUrl + "/producer/payments")
+                    .uri(paymentUrl + "/payments/payments")
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<Payment>>() {
                     });
@@ -60,7 +60,7 @@ public class ProducerClientService {
         try {
             Mono<Payment> response = webClient
                     .post()
-                    .uri(producerUrl + "/producer/payments")
+                    .uri(paymentUrl + "/payments/payments")
                     .bodyValue(payment)
                     .retrieve()
                     .bodyToMono(Payment.class);
@@ -83,7 +83,7 @@ public class ProducerClientService {
         try {
             Mono<String> response = webClient
                     .get()
-                    .uri(producerUrl + "/producer/health")
+                    .uri(paymentUrl + "/payments/health")
                     .retrieve()
                     .bodyToMono(String.class);
 

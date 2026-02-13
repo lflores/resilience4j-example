@@ -12,22 +12,22 @@ import org.springframework.web.bind.annotation.RestController;
 import com.perficient.resilience4j.consumer.model.Payment;
 import com.perficient.resilience4j.consumer.service.CreatePaymentResponse;
 import com.perficient.resilience4j.consumer.service.GetPaymentsResponse;
-import com.perficient.resilience4j.consumer.service.ProducerClientService;
+import com.perficient.resilience4j.consumer.service.PaymentClientService;
 
 @RestController
 @RequestMapping(value = "/consumer", produces = "application/json")
 public class ConsumerController {
 
-    private final ProducerClientService producerClientService;
+    private final PaymentClientService paymentClientService;
 
     @Autowired
-    public ConsumerController(ProducerClientService producerClientService) {
-        this.producerClientService = producerClientService;
+    public ConsumerController(PaymentClientService paymentClientService) {
+        this.paymentClientService = paymentClientService;
     }
 
     @GetMapping(value = "/payments", produces = "application/json")
     public ResponseEntity<GetPaymentsResponse> getAllPayments() {
-        GetPaymentsResponse response = producerClientService.getAllPayments();
+        GetPaymentsResponse response = paymentClientService.getAllPayments();
         
         // Return appropriate HTTP status based on response content
         if (!response.getErrors().isEmpty()) {
@@ -43,7 +43,7 @@ public class ConsumerController {
 
     @PostMapping(value = "/payments", produces = "application/json", consumes = "application/json")
     public ResponseEntity<CreatePaymentResponse> createPayment(@RequestBody Payment payment) {
-        CreatePaymentResponse response = producerClientService.createPayment(payment);
+        CreatePaymentResponse response = paymentClientService.createPayment(payment);
         
         // Return appropriate HTTP status based on response content
         if (!response.getErrors().isEmpty()) {
@@ -62,9 +62,9 @@ public class ConsumerController {
         return ResponseEntity.ok("Consumer service is running");
     }
 
-    @GetMapping("/producer-health")
-    public ResponseEntity<String> checkProducerHealth() {
-        String healthStatus = producerClientService.checkProducerHealth();
+    @GetMapping("/payment-health")
+    public ResponseEntity<String> checkPaymentHealth() {
+        String healthStatus = paymentClientService.checkProducerHealth();
         return ResponseEntity.ok(healthStatus);
     }
 }

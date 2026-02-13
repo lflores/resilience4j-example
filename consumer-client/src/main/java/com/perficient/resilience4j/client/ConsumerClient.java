@@ -89,9 +89,9 @@ public class ConsumerClient {
                 testHealthCheck();
             }
             
-            // Test 3: Producer connectivity check  
-            if (ClientConfig.ENABLE_PRODUCER_HEALTH_TEST) {
-                testProducerHealth();
+            // Test 3: Payment API connectivity check  
+            if (ClientConfig.ENABLE_PAYMENT_HEALTH_TEST) {
+                testPaymentHealth();
             }
             
             // Test 4: Create payment (every Nth cycle)
@@ -114,8 +114,8 @@ public class ConsumerClient {
         executeRequest("GET", "/health", null, "Health Check");
     }
 
-    private void testProducerHealth() {
-        executeRequest("GET", "/producer-health", null, "Producer Health");
+    private void testPaymentHealth() {
+        executeRequest("GET", "/payment-health", null, "Payment Health");
     }
 
     private void testCreatePayment() {

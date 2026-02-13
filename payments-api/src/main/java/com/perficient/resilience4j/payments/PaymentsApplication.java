@@ -1,12 +1,12 @@
-package com.perficient.resilience4j.producer;
+package com.perficient.resilience4j.payments;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ProducerApplication {
+public class PaymentsApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ProducerApplication.class, args);
+        SpringApplication.run(PaymentsApplication.class, args);
     }
 }

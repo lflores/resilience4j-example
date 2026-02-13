@@ -1,6 +1,6 @@
-package com.perficient.resilience4j.producer.service;
+package com.perficient.resilience4j.payments.service;
 
-import com.perficient.resilience4j.producer.model.Payment;
+import com.perficient.resilience4j.payments.model.Payment;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

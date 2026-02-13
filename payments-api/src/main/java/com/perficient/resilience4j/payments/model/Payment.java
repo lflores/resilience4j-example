@@ -1,4 +1,4 @@
-package com.perficient.resilience4j.producer.model;
+package com.perficient.resilience4j.payments.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

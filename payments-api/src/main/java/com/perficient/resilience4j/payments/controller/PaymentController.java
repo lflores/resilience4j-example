@@ -1,7 +1,7 @@
-package com.perficient.resilience4j.producer.controller;
+package com.perficient.resilience4j.payments.controller;
 
-import com.perficient.resilience4j.producer.model.Payment;
-import com.perficient.resilience4j.producer.service.PaymentService;
+import com.perficient.resilience4j.payments.model.Payment;
+import com.perficient.resilience4j.payments.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/producer")
+@RequestMapping("/payments")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -48,6 +48,6 @@ public class PaymentController {
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("Producer service is running");
+        return ResponseEntity.ok("Payments API service is running");
     }
 }

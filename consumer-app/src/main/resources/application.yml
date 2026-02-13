@@ -15,7 +15,7 @@ spring:
       fail-on-unknown-properties: false
     property-naming-strategy: SNAKE_CASE
 
-producer:
+payment:
   service:
     url: http://localhost:8080
 

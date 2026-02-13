@@ -13,7 +13,7 @@
     <description>Maven monorepo with Spring Boot producer and consumer applications</description>
 
     <modules>
-        <module>producer-app</module>
+        <module>payments-api</module>
         <module>consumer-app</module>
         <module>consumer-client</module>
     </modules>

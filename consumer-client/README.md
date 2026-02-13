@@ -35,8 +35,8 @@ The Consumer Client acts as a dedicated testing client that:
    - Verifies service availability
    - Quick response time test
 
-3. **GET /consumer/producer-health** - Producer connectivity check
-   - Tests consumer → producer communication
+3. **GET /consumer/payment-health** - Payments API connectivity check
+   - Tests consumer → payments API communication
    - Validates service integration
 
 4. **POST /consumer/payments** - Create payment (every 10th cycle)
@@ -47,7 +47,7 @@ The Consumer Client acts as a dedicated testing client that:
 ## Prerequisites
 
 1. **Consumer service running** on `http://localhost:8081`
-2. **Producer service running** on `http://localhost:8080`
+2. **Payments API service running** on `http://localhost:8080`
 3. **Java 21** installed
 4. **Maven** for building and running
 
@@ -63,8 +63,8 @@ mvn clean compile
 ### 2. Start Required Services
 
 ```bash
-# Terminal 1 - Start Producer
-cd ../../producer-app
+# Terminal 1 - Start Payments API
+cd ../../payments-api
 mvn spring-boot:run
 
 # Terminal 2 - Start Consumer
@@ -101,7 +101,7 @@ Press `Ctrl+C` to gracefully stop and see final metrics.
 🔄 [14:30:15] Running test cycle...
 ✅ Get Payments - 200 (245ms) - 1247 bytes
 ✅ Health Check - 200 (12ms) - 25 bytes
-✅ Producer Health - 200 (156ms) - 25 bytes
+✅ Payment Health - 200 (156ms) - 25 bytes
 📊 Found 4 payments
 
 📈 === METRICS REPORT [14:30:45] ===
@@ -171,7 +171,7 @@ public static final String DEFAULT_CONSUMER_URL = "http://localhost:8081/consume
 
 ### 4. Service Availability Monitoring 📡
 - Continuous health checks
-- Producer connectivity verification
+- Payments API connectivity verification
 - Service availability percentage
 - Uptime tracking
 
@@ -205,7 +205,7 @@ Enable/disable specific tests in `ClientConfig.java`:
 ```java
 public static final boolean ENABLE_GET_PAYMENTS_TEST = true;
 public static final boolean ENABLE_HEALTH_CHECK_TEST = true;
-public static final boolean ENABLE_PRODUCER_HEALTH_TEST = true;
+public static final boolean ENABLE_PAYMENT_HEALTH_TEST = true;
 public static final boolean ENABLE_CREATE_PAYMENT_TEST = true;
 public static final boolean ENABLE_RESPONSE_VALIDATION = true;
 ```
@@ -254,7 +254,7 @@ public static final boolean ENABLE_RESPONSE_VALIDATION = true;
 1. **Check services are running**:
    ```bash
    curl http://localhost:8081/consumer/health
-   curl http://localhost:8080/producer/health  
+   curl http://localhost:8080/payments/health  
    ```
 
 2. **Test manual API calls**:

@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: producer-app
+    name: payments
   jmx:
     enabled: true
 
@@ -32,6 +32,6 @@ com.sun.management.jmxremote:
 
 info:
   app:
-    name: Producer Application
-    description: Payment service producer
+    name: Payments API
+    description: Payment service API
     version: 1.0.0

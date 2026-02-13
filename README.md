@@ -1,17 +1,17 @@
 # Resilience4j Example - Maven Monorepo
 
-A Maven monorepo containing two Spring Boot applications and a testing client demonstrating microservices communication patterns. The project consists of a producer service that manages payments, a consumer service that calls the producer via HTTP, and a consumer-client testing tool for continuous monitoring.
+A Maven monorepo containing two Spring Boot applications and a testing client demonstrating microservices communication patterns. The project consists of a payments API service that manages payments, a consumer service that calls the payments API via HTTP, and a consumer-client testing tool for continuous monitoring.
 
 ## Project Structure
 
 ```
 resilience4j-example/
 ├── pom.xml                          # Parent Maven POM
-├── producer-app/                    # Producer Spring Boot application
+├── payments-api/                    # Payments API Spring Boot application
 │   ├── pom.xml
 │   └── src/main/
-│       ├── java/com/perficient/resilience4j/producer/
-│       │   ├── ProducerApplication.java
+│       ├── java/com/perficient/resilience4j/payments/
+│       │   ├── PaymentsApplication.java
 │       │   ├── controller/PaymentController.java
 │       │   ├── service/PaymentService.java
 │       │   └── model/Payment.java
@@ -22,7 +22,7 @@ resilience4j-example/
 │       ├── java/com/perficient/resilience4j/consumer/
 │       │   ├── ConsumerApplication.java
 │       │   ├── controller/ConsumerController.java
-│       │   ├── service/ProducerClientService.java
+│       │   ├── service/PaymentClientService.java
 │       │   ├── config/WebClientConfig.java
 │       │   └── model/Payment.java
 │       └── resources/application.yml
@@ -50,9 +50,9 @@ resilience4j-example/
 
 ## Applications
 
-### Producer Application (Port 8080)
+### Payments API Application (Port 8080)
 
-The producer service manages payment operations and exposes REST endpoints.
+The payments API service manages payment operations and exposes REST endpoints.
 
 **Features:**
 - Payment CRUD operations
@@ -67,11 +67,11 @@ The producer service manages payment operations and exposes REST endpoints.
 
 ### Consumer Application (Port 8081)
 
-The consumer service acts as a proxy that communicates with the producer via HTTP.
+The consumer service acts as a proxy that communicates with the payments API via HTTP.
 
 **Features:**
 - HTTP client using WebClient
-- Producer connectivity health checks
+- Payments API connectivity health checks
 - Spring Actuator monitoring
 - Proxy endpoints for payment operations
 
@@ -105,14 +105,14 @@ mvn clean package
 mvn clean compile
 ```
 
-### 2. Run Producer Application
+### 2. Run Payments API Application
 
 ```bash
-cd producer-app
+cd payments-api
 mvn spring-boot:run
 ```
 
-The producer will start on `http://localhost:8080`
+The payments API will start on `http://localhost:8080`
 
 ### 3. Run Consumer Application
 
@@ -142,14 +142,14 @@ The client will poll `http://localhost:8081/consumer/payments` every 5 seconds a
 
 ## API Endpoints
 
-### Producer Service (Port 8080)
+### Payments API Service (Port 8080)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/producer/payments` | Get all payments |
-| POST | `/producer/payments` | Create a new payment |
-| GET | `/producer/payments/{id}` | Get payment by ID |
-| GET | `/producer/health` | Service health check |
+| GET | `/payments/payments` | Get all payments |
+| POST | `/payments/payments` | Create a new payment |
+| GET | `/payments/payments/{id}` | Get payment by ID |
+| GET | `/payments/health` | Service health check |
 | GET | `/actuator/health` | Spring Actuator health |
 | GET | `/actuator/*` | All actuator endpoints |
 
@@ -157,19 +157,19 @@ The client will poll `http://localhost:8081/consumer/payments` every 5 seconds a
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/consumer/payments` | Get all payments (via producer) |
-| POST | `/consumer/payments` | Create payment (via producer) |
+| GET | `/consumer/payments` | Get all payments (via payments API) |
+| POST | `/consumer/payments` | Create payment (via payments API) |
 | GET | `/consumer/health` | Consumer health check |
-| GET | `/consumer/producer-health` | Producer connectivity check |
+| GET | `/consumer/payment-health` | Payments API connectivity check |
 | GET | `/actuator/health` | Spring Actuator health |
 | GET | `/actuator/*` | All actuator endpoints |
 
 ## Usage Examples
 
-### Get All Payments (Direct from Producer)
+### Get All Payments (Direct from Payments API)
 
 ```bash
-curl -X GET http://localhost:8080/producer/payments
+curl -X GET http://localhost:8080/payments/payments
 ```
 
 ### Get All Payments (Via Consumer)
@@ -193,21 +193,21 @@ curl -X POST http://localhost:8081/consumer/payments \
 ### Check Services Health
 
 ```bash
-# Producer health
-curl http://localhost:8080/producer/health
+# Payments API health
+curl http://localhost:8080/payments/health
 curl http://localhost:8080/actuator/health
 
 # Consumer health  
 curl http://localhost:8081/consumer/health
 curl http://localhost:8081/actuator/health
 
-# Consumer checking producer connectivity
-curl http://localhost:8081/consumer/producer-health
+# Consumer checking payments API connectivity
+curl http://localhost:8081/consumer/payment-health
 ```
 
 ## Configuration
 
-### Producer Application (`producer-app/src/main/resources/application.yml`)
+### Payments API Application (`payments-api/src/main/resources/application.yml`)
 
 ```yaml
 server:
@@ -215,7 +215,7 @@ server:
 
 spring:
   application:
-    name: producer-app
+    name: payments
   jmx:
     enabled: true
 
@@ -246,7 +246,7 @@ spring:
   jmx:
     enabled: true
 
-producer:
+payment:
   service:
     url: http://localhost:8080
 
@@ -294,7 +294,7 @@ public class Payment {
 mvn test
 
 # Run tests for specific module
-mvn test -pl producer-app
+mvn test -pl payments-api
 mvn test -pl consumer-app
 mvn test -pl consumer-client
 ```
@@ -302,8 +302,8 @@ mvn test -pl consumer-client
 ### Building Individual Modules
 
 ```bash
-# Build only producer
-mvn clean package -pl producer-app
+# Build only payments API
+mvn clean package -pl payments-api
 
 # Build only consumer  
 mvn clean package -pl consumer-app
@@ -326,18 +326,18 @@ Both applications include Spring Actuator endpoints for monitoring:
 - **Environment**: `/actuator/env`
 
 Access all endpoints at:
-- Producer: http://localhost:8080/actuator (Management Port: 9001)
+- Payments API: http://localhost:8080/actuator (Management Port: 9001)
 - Consumer: http://localhost:8081/actuator (Management Port: 9002)
 
 ### JMX Monitoring
 
 Each application runs on different JMX ports to avoid conflicts:
-- **Producer JMX Port**: 9001
+- **Payments API JMX Port**: 9001
 - **Consumer JMX Port**: 9002
 
 You can connect to JMX using tools like JConsole or VisualVM:
 ```bash
-# Connect to Producer JMX
+# Connect to Payments API JMX
 jconsole localhost:9001
 
 # Connect to Consumer JMX  
@@ -370,13 +370,13 @@ This project is designed as a foundation for implementing Resilience4j patterns:
    ```
    
    The applications use different JMX ports to avoid conflicts:
-   - Producer: 9001
+   - Payments API: 9001
    - Consumer: 9002
 
 2. **Port Already in Use - Application Ports**
    ```bash
    # Check what's using the application ports
-   lsof -i :8080  # Producer
+   lsof -i :8080  # Payments API
    lsof -i :8081  # Consumer
    ```
 

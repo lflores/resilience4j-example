@@ -1,0 +1,37 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: accounts
+  jmx:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    jmx:
+      exposure:
+        include: "*"
+  info:
+    env:
+      enabled: true
+  server:
+    port: 9003
+
+com.sun.management.jmxremote:
+  port: 9003
+  rmi.port: 9003
+  authenticate: false
+  ssl: false
+
+info:
+  app:
+    name: Accounts API
+    description: Account service API
+    version: 1.0.0

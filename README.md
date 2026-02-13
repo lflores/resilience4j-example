@@ -112,9 +112,16 @@ cd payments-api
 mvn spring-boot:run
 ```
 
+### 3. Run Payments API Application
+
+```bash
+cd payments-api
+mvn spring-boot:run
+```
+
 The payments API will start on `http://localhost:8080`
 
-### 3. Run Consumer Application
+### 4. Run Consumer Application
 
 ```bash
 # In a new terminal
@@ -124,7 +131,7 @@ mvn spring-boot:run
 
 The consumer will start on `http://localhost:8081`
 
-### 4. Run Consumer Client (Optional)
+### 5. Run Consumer Client (Optional)
 
 The consumer-client provides continuous monitoring and testing of the consumer API:
 

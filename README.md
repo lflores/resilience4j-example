@@ -1,6 +1,6 @@
 # Resilience4j Example - Maven Monorepo
 
-A Maven monorepo containing two Spring Boot applications and a testing client demonstrating microservices communication patterns. The project consists of a payments API service that manages payments, a consumer service that calls the payments API via HTTP, and a consumer-client testing tool for continuous monitoring.
+A Maven monorepo containing three Spring Boot applications and a testing client demonstrating microservices communication patterns. The project consists of a payments API service that manages payments, an accounts API service that manages accounts, a consumer service that calls both APIs via HTTP, and a consumer-client testing tool for continuous monitoring.
 
 ## Project Structure
 
@@ -16,6 +16,15 @@ resilience4j-example/
 │       │   ├── service/PaymentService.java
 │       │   └── model/Payment.java
 │       └── resources/application.yml
+├── accounts-api/                    # Accounts API Spring Boot application
+│   ├── pom.xml
+│   └── src/main/
+│       ├── java/com/perficient/resilience4j/accounts/
+│       │   ├── AccountsApplication.java
+│       │   ├── controller/AccountController.java
+│       │   ├── service/AccountService.java
+│       │   └── model/Account.java
+│       └── resources/application.yml
 ├── consumer-app/                    # Consumer Spring Boot application
 │   ├── pom.xml
 │   └── src/main/
@@ -23,8 +32,10 @@ resilience4j-example/
 │       │   ├── ConsumerApplication.java
 │       │   ├── controller/ConsumerController.java
 │       │   ├── service/PaymentClientService.java
+│       │   ├── service/AccountClientService.java
 │       │   ├── config/WebClientConfig.java
-│       │   └── model/Payment.java
+│       │   ├── model/Payment.java
+│       │   └── model/Account.java
 │       └── resources/application.yml
 └── consumer-client/                 # HTTP testing client
     ├── pom.xml
@@ -33,7 +44,8 @@ resilience4j-example/
             ├── ConsumerClient.java
             ├── ClientConfig.java
             ├── ClientMetrics.java
-            └── model/Payment.java
+            ├── model/Payment.java
+            └── model/Account.java
 ```
 
 ## Technologies Used
@@ -65,13 +77,29 @@ The payments API service manages payment operations and exposes REST endpoints.
 - Utility bill payment: $89.99 (PENDING) 
 - Restaurant payment: $45.75 (COMPLETED)
 
+### Accounts API Application (Port 8083)
+
+The accounts API service manages account operations and exposes REST endpoints.
+
+**Features:**
+- Account CRUD operations
+- In-memory storage with dummy data
+- Spring Actuator monitoring
+- RESTful API with JSON responses
+
+**Dummy Data:**
+- Grocery Account: $125.50 (IDA - Individual Deposit Account)
+- Utility Account: $89.99 (IDA - Individual Deposit Account) 
+- Restaurant Account: $45.75 (CCA - Corporate Checking Account)
+
 ### Consumer Application (Port 8081)
 
-The consumer service acts as a proxy that communicates with the payments API via HTTP.
+The consumer service acts as a proxy that communicates with both the payments API and accounts API via HTTP.
 
 **Features:**
 - HTTP client using WebClient
 - Payments API connectivity health checks
+- Accounts API connectivity health checks
 - Spring Actuator monitoring
 - Proxy endpoints for payment operations
 
@@ -160,14 +188,28 @@ The client will poll `http://localhost:8081/consumer/payments` every 5 seconds a
 | GET | `/actuator/health` | Spring Actuator health |
 | GET | `/actuator/*` | All actuator endpoints |
 
+### Accounts API Service (Port 8083)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/accounts/accounts` | Get all accounts |
+| POST | `/accounts/accounts` | Create a new account |
+| GET | `/accounts/accounts/{id}` | Get account by ID |
+| GET | `/accounts/health` | Service health check |
+| GET | `/actuator/health` | Spring Actuator health |
+| GET | `/actuator/*` | All actuator endpoints |
+
 ### Consumer Service (Port 8081)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/consumer/payments` | Get all payments (via payments API) |
 | POST | `/consumer/payments` | Create payment (via payments API) |
+| GET | `/consumer/accounts` | Get all accounts (via accounts API) |
+| POST | `/consumer/accounts` | Create account (via accounts API) |
 | GET | `/consumer/health` | Consumer health check |
 | GET | `/consumer/payment-health` | Payments API connectivity check |
+| GET | `/consumer/account-health` | Accounts API connectivity check |
 | GET | `/actuator/health` | Spring Actuator health |
 | GET | `/actuator/*` | All actuator endpoints |
 
@@ -197,6 +239,31 @@ curl -X POST http://localhost:8081/consumer/payments \
   }'
 ```
 
+### Get All Accounts (Direct from Accounts API)
+
+```bash
+curl -X GET http://localhost:8083/accounts/accounts
+```
+
+### Get All Accounts (Via Consumer)
+
+```bash
+curl -X GET http://localhost:8081/consumer/accounts
+```
+
+### Create a New Account (Via Consumer)
+
+```bash
+curl -X POST http://localhost:8081/consumer/accounts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "New checking account",
+    "type": "CCA",
+    "balance": 1000.00,
+    "currency": "USD"
+  }'
+```
+
 ### Check Services Health
 
 ```bash
@@ -204,12 +271,19 @@ curl -X POST http://localhost:8081/consumer/payments \
 curl http://localhost:8080/payments/health
 curl http://localhost:8080/actuator/health
 
+# Accounts API health
+curl http://localhost:8083/accounts/health
+curl http://localhost:8083/actuator/health
+
 # Consumer health  
 curl http://localhost:8081/consumer/health
 curl http://localhost:8081/actuator/health
 
 # Consumer checking payments API connectivity
 curl http://localhost:8081/consumer/payment-health
+
+# Consumer checking accounts API connectivity
+curl http://localhost:8081/consumer/account-health
 ```
 
 ## Configuration
@@ -241,6 +315,33 @@ com.sun.management.jmxremote:
   ssl: false
 ```
 
+### Accounts API Application (`accounts-api/src/main/resources/application.yml`)
+
+```yaml
+server:
+  port: 8083
+
+spring:
+  application:
+    name: accounts
+  jmx:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: 9003
+
+com.sun.management.jmxremote:
+  port: 9003
+  rmi.port: 9003
+  authenticate: false
+  ssl: false
+```
+
 ### Consumer Application (`consumer-app/src/main/resources/application.yml`)
 
 ```yaml
@@ -256,6 +357,10 @@ spring:
 payment:
   service:
     url: http://localhost:8080
+
+account:
+  service:
+    url: http://localhost:8083
 
 management:
   endpoints:
@@ -334,18 +439,23 @@ Both applications include Spring Actuator endpoints for monitoring:
 
 Access all endpoints at:
 - Payments API: http://localhost:8080/actuator (Management Port: 9001)
+- Accounts API: http://localhost:8083/actuator (Management Port: 9003)
 - Consumer: http://localhost:8081/actuator (Management Port: 9002)
 
 ### JMX Monitoring
 
 Each application runs on different JMX ports to avoid conflicts:
 - **Payments API JMX Port**: 9001
+- **Accounts API JMX Port**: 9003
 - **Consumer JMX Port**: 9002
 
 You can connect to JMX using tools like JConsole or VisualVM:
 ```bash
 # Connect to Payments API JMX
 jconsole localhost:9001
+
+# Connect to Accounts API JMX
+jconsole localhost:9003
 
 # Connect to Consumer JMX  
 jconsole localhost:9002
@@ -367,10 +477,11 @@ This project is designed as a foundation for implementing Resilience4j patterns:
 
 1. **Port Already in Use - JMX Conflict**
    ```bash
-   # Error: Address already in use on port 9001/9002
+   # Error: Address already in use on port 9001/9002/9003
    # Check JMX ports
    lsof -i :9001
    lsof -i :9002
+   lsof -i :9003
    
    # Kill processes if needed
    kill -9 <PID>
@@ -378,6 +489,7 @@ This project is designed as a foundation for implementing Resilience4j patterns:
    
    The applications use different JMX ports to avoid conflicts:
    - Payments API: 9001
+   - Accounts API: 9003
    - Consumer: 9002
 
 2. **Port Already in Use - Application Ports**
@@ -385,6 +497,7 @@ This project is designed as a foundation for implementing Resilience4j patterns:
    # Check what's using the application ports
    lsof -i :8080  # Payments API
    lsof -i :8081  # Consumer
+   lsof -i :8083  # Accounts API
    ```
 
 3. **Java Version Issues**

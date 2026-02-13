@@ -19,6 +19,10 @@ payment:
   service:
     url: http://localhost:8080
 
+account:
+  service:
+    url: http://localhost:8083
+
 management:
   endpoints:
     web:
